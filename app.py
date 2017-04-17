@@ -1,28 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import falcon
+# This file contains the WSGI configuration required to serve up your
+# web application at http://divyabiyani.pythonanywhere.com/
+# It works by setting the variable 'application' to a WSGI handler of some
+# description.
+
+JSONcontent = ''
+with open('/home/divyabiyani/Countries-Flag-API/Countries.json','r') as f:
+    JSONcontent = JSONcontent + (f.readline())
+
+Countries = '''<html>
+<head>
+    <title>Countries Flag</title>
+</head>
+<body>
+<pre>''' + JSONcontent + '''
+</pre>
+</body>
+</html>'''
 
 
-# Falcon follows the REST architectural style, meaning (among
-# other things) that you think in terms of resources and state
-# transitions, which map to HTTP verbs.
-class CountriesResource(object):
-    def getJson(self):
-        content = ''
-        with open('Countries.json','r') as f:
-            content = content + (f.readline())
-        return content
-    def on_get(self, req, resp):
-        """Handles GET requests"""
-        resp.status = falcon.HTTP_200  # This is the default status
-        resp.set_header('Access-Control-Allow-Origin', '*')
-        resp.body = (self.getJson())
-# falcon.API instances are callable WSGI apps
-app = falcon.API()
-
-# Resources are represented by long-lived class instances
-countries = CountriesResource()
-
-# things will handle all requests to the '/things' URL path
-app.add_route('/countries', countries)
+def application(environ, start_response):
+    if environ.get('PATH_INFO') == '/':
+        status = '200 OK'
+        content = Countries
+    else:
+        status = '404 NOT FOUND'
+        content = 'Page not found.'
+    response_headers = [('Access-Control-Allow-Origin', '*')]
+    start_response(status, response_headers)
+    yield JSONcontent
